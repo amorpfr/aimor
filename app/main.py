@@ -45,8 +45,8 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="ai-mor.me API - Cultural Intelligence Dating Engine",
-    description="Redis-Powered Async Cultural Intelligence Dating Engine with Qloo Integration",
-    version="2.2.0",
+    description="Redis-Powered Async Cultural Intelligence Dating Engine",
+    version="2.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -100,8 +100,8 @@ def get_redis_client():
 redis_client = get_redis_client()
 profile_processor = ProfileProcessor()
 
-# Thread pool for background processing (reduced for Heroku)
-executor = ThreadPoolExecutor(max_workers=1)
+# Thread pool for background processing
+executor = ThreadPoolExecutor(max_workers=3)
 
 # Redis key patterns
 PROGRESS_KEY = "progress:{request_id}"
@@ -207,14 +207,13 @@ async def health_check():
         
         return {
             "status": "healthy",
-            "service": "ai-mor.me API v2.2 - Redis-Powered Cultural Intelligence with Qloo Integration",
-            "version": "2.2.0",
+            "service": "ai-mor.me API v2.1 - Redis-Powered Cultural Intelligence",
+            "version": "2.1.0",
             "environment": settings.ENVIRONMENT,
             "debug": settings.DEBUG,
             "api_keys_valid": validation["valid"],
             "missing_keys": validation["missing_keys"] if not validation["valid"] else [],
             "redis_status": redis_status,
-            "qloo_integration": "Active - Cultural Intelligence + Venue Discovery",
             "processing_queue": {
                 "active_requests": redis_status.get("active_progress_keys", 0),
                 "completed_results": redis_status.get("active_result_keys", 0),
@@ -237,21 +236,14 @@ async def health_check():
 async def root():
     """Root endpoint"""
     return {
-        "message": "Welcome to ai-mor.me API v2.2 - Redis-Powered Cultural Intelligence with Qloo Integration",
+        "message": "Welcome to ai-mor.me API v2.1 - Redis-Powered Cultural Intelligence",
         "features": [
             "Redis-powered real-time progress tracking",
             "6-step AI pipeline with live updates", 
             "Async processing for instant response",
             "OpenAI + Qloo cultural intelligence",
-            "Production-ready scalable architecture",
-            "Qloo API integration for cultural discovery",
-            "Qloo-powered venue matching"
+            "Production-ready scalable architecture"
         ],
-        "qloo_integration": {
-            "cultural_discovery": "Qloo Insights API analyzes cultural preferences across domains",
-            "venue_matching": "Qloo venue recommendations with cultural intelligence",
-            "real_time_api": "Live Qloo API calls during processing"
-        },
         "endpoints": {
             "docs": "/docs",
             "health": "/health",
@@ -260,7 +252,7 @@ async def root():
             "result": "GET /date-plan-result/{request_id}",
             "cancel": "DELETE /cancel-date-plan/{request_id}"
         },
-        "version": "2.2.0"
+        "version": "2.1.0"
     }
 
 # ===== MAIN ASYNC ENDPOINTS =====
@@ -270,7 +262,7 @@ async def start_cultural_date_plan(request: DatePlanRequest, background_tasks: B
     """
     START: Redis-Powered Async Cultural Intelligence Date Planning FOR TWO PROFILES
     
-    Accepts two complete profiles with text/images and creates intelligent date plan using Qloo API.
+    Accepts two complete profiles with text/images and creates intelligent date plan.
     """
     try:
         # Validate that both profiles have content
@@ -308,38 +300,33 @@ async def start_cultural_date_plan(request: DatePlanRequest, background_tasks: B
             "current_step": 0,
             "steps": {
                 "1": {"name": "Profile Analysis (Both)", "status": "pending", "duration": None, "preview": "Preparing dual personality analysis..."},
-                "2": {"name": "Qloo Cultural Discovery (Both)", "status": "pending", "duration": None, "preview": "Waiting for Qloo API cultural exploration..."},
+                "2": {"name": "Cultural Discovery (Both)", "status": "pending", "duration": None, "preview": "Waiting for cultural exploration..."},
                 "3": {"name": "Compatibility Calculation", "status": "pending", "duration": None, "preview": "Compatibility analysis pending..."},
                 "4": {"name": "Activity Planning", "status": "pending", "duration": None, "preview": "Activity planning queued..."},
-                "5": {"name": "Qloo Venue Discovery", "status": "pending", "duration": None, "preview": "Qloo venue discovery awaiting..."},
+                "5": {"name": "Venue Discovery", "status": "pending", "duration": None, "preview": "Venue discovery awaiting..."},
                 "6": {"name": "Final Optimization", "status": "pending", "duration": None, "preview": "Final optimization pending..."}
             },
             "cultural_previews": [],
             "eta_seconds": 120,
             "processing_start": datetime.now().isoformat(),
-            "last_updated": datetime.now().isoformat(),
-            "qloo_integration": {
-                "step_2_status": "pending",
-                "step_5_status": "pending",
-                "api_calls_planned": "Cultural discovery + Venue matching"
-            }
+            "last_updated": datetime.now().isoformat()
         }
         
         if not redis_set_json(PROGRESS_KEY.format(request_id=request_id), initial_progress, 7200):
             logger.warning("Redis progress storage failed, but continuing")
         
         # Start background processing for TWO PROFILES
-        logger.info(f"🎬 STARTING background task for {request_id} with Qloo integration")
+        logger.info(f"🎬 STARTING background task for {request_id} - SINGLE CALL")
         background_tasks.add_task(process_dual_profile_pipeline, request_id)
         logger.info(f"🎬 QUEUED background task for {request_id} - TASK ADDED")
         
         # Log request start
-        logger.info(f"🚀 Started Redis-powered DUAL PROFILE cultural intelligence processing with Qloo: {request_id}")
+        logger.info(f"🚀 Started Redis-powered DUAL PROFILE cultural intelligence processing: {request_id}")
         
         # Return immediate response
         return {
             "success": True,
-            "message": "Dual profile cultural intelligence analysis started with Redis state management and Qloo API integration",
+            "message": "Dual profile cultural intelligence analysis started with Redis state management",
             "request_id": request_id,
             "status": "processing",
             "estimated_time_seconds": 120,
@@ -347,7 +334,6 @@ async def start_cultural_date_plan(request: DatePlanRequest, background_tasks: B
             "result_endpoint": f"/date-plan-result/{request_id}",
             "storage": "redis" if redis_client else "memory_fallback",
             "profiles": "dual_profile_mode",
-            "qloo_integration": "Active - Cultural discovery + Venue matching",
             "timestamp": datetime.now().isoformat()
         }
         
@@ -366,7 +352,7 @@ async def start_cultural_date_plan(request: DatePlanRequest, background_tasks: B
 @app.get("/date-plan-progress/{request_id}")
 async def get_date_plan_progress(request_id: str):
     """
-    PROGRESS: Redis-powered real-time progress updates with Qloo integration visibility
+    PROGRESS: Redis-powered real-time progress updates
     
     ENHANCED: Returns complete results when status is "complete" to bypass corruption bug.
     """
@@ -411,7 +397,7 @@ async def get_date_plan_progress(request_id: str):
         progress["elapsed_seconds"] = int(elapsed_seconds)
         progress["last_updated"] = datetime.now().isoformat()
         
-        # ENHANCED: If processing is complete, add full results as new field with Qloo visibility
+        # ENHANCED: If processing is complete, add full results as new field
         if progress["status"] == "complete":
             # PRIORITY 1: Check for embedded results (corruption-proof)
             if progress.get("results_embedded") and progress.get("final_date_plan_embedded"):
@@ -419,18 +405,7 @@ async def get_date_plan_progress(request_id: str):
                 progress["complete_date_plan"] = progress["final_date_plan_embedded"]
                 progress["results_message"] = "Complete date plan available (embedded results)"
                 progress["results_source"] = "embedded_in_progress"
-                
-                # NEW: Extract and highlight Qloo integration for judges
-                qloo_data = progress["complete_date_plan"].get("qloo_cultural_intelligence", {})
-                if qloo_data:
-                    progress["qloo_integration_summary"] = {
-                        "entities_discovered": qloo_data.get("total_entities_discovered", 0),
-                        "venues_matched": qloo_data.get("total_venues_analyzed", 0), 
-                        "api_calls_made": qloo_data.get("total_qloo_api_calls", 0),
-                        "judge_message": f"✅ QLOO POWERED: {qloo_data.get('total_entities_discovered', 0)} cultural discoveries + {qloo_data.get('total_venues_analyzed', 0)} venue matches"
-                    }
-                
-                logger.info(f"✅ DELIVERED EMBEDDED RESULTS with Qloo visibility for {request_id}")
+                logger.info(f"✅ DELIVERED EMBEDDED RESULTS via progress endpoint for {request_id}")
             else:
                 # FALLBACK: Try to get results from Redis (may be corrupted)
                 final_results = redis_get_json(RESULT_KEY.format(request_id=request_id))
@@ -450,7 +425,6 @@ async def get_date_plan_progress(request_id: str):
         else:
             # Still processing - no results yet
             progress["final_results_available"] = False
-        
         # Update Redis with new timing info (quick update, 10 min expiry)
         redis_set_json(PROGRESS_KEY.format(request_id=request_id), progress, 600)
         
@@ -525,8 +499,7 @@ async def get_date_plan_result(request_id: str):
             "processing_time_seconds": progress.get("elapsed_seconds", 0),
             "completed_at": datetime.now().isoformat(),
             "steps_completed": progress["current_step"],
-            "storage_backend": "redis",
-            "qloo_integration": "Active"
+            "storage_backend": "redis"
         }
         
         logger.info(f"✅ Delivered Redis-stored results for {request_id}")
@@ -580,201 +553,44 @@ async def cancel_date_plan(request_id: str):
 
 @app.get("/demo")
 async def demo_with_redis():
-    """Demo endpoint showing Redis-powered async flow with Qloo integration"""
+    """Demo endpoint showing Redis-powered async flow"""
     redis_status = get_redis_status()
     
     return {
-        "demo": "Redis-Powered Async Cultural Intelligence Demo with Qloo Integration",
+        "demo": "Redis-Powered Async Cultural Intelligence Demo",
         "redis_backend": redis_status,
-        "qloo_integration": {
-            "step_2": "Qloo API discovers cultural entities across domains",
-            "step_5": "Qloo API matches venues using cultural intelligence",
-            "real_time": "Live Qloo API calls during processing"
-        },
         "flow": {
             "step_1": "POST /start-cultural-date-plan with profiles → Immediate response + Redis storage",
-            "step_2": "Poll GET /date-plan-progress/{request_id} every 2s → Live updates from Redis + Qloo visibility",
-            "step_3": "GET /date-plan-result/{request_id} when complete → Final results from Redis with Qloo insights"
+            "step_2": "Poll GET /date-plan-progress/{request_id} every 2s → Live updates from Redis",
+            "step_3": "GET /date-plan-result/{request_id} when complete → Final results from Redis"
         },
         "sample_progress_flow": [
             "Step 1/6: Analyzing Personalities... ✅ (12s)",
             "├─ Cultural Preview: Found core personality traits",
-            "Step 2/6: Qloo Cultural Discovery... ✅ (28s)", 
-            "├─ Qloo Preview: Discovered 24 cultural entities across 5 domains via Qloo API",
+            "Step 2/6: Discovering Cultural Preferences... ✅ (28s)", 
+            "├─ Cultural Preview: Discovered 12 cross-domain preferences",
             "Step 3/6: Calculating Compatibility... ✅ (16s)",
             "├─ Cultural Preview: Compatibility: 70% match",
-            "Step 5/6: Qloo Venue Discovery... ✅ (11s)",
-            "├─ Qloo Preview: Matched 6 venues using Qloo cultural intelligence",
+            "Step 5/6: Finding Perfect Venues... ✅ (11s)",
+            "├─ Cultural Preview: Selected 6 perfect venues",
             "Step 6/6: Creating Your Date Plan... ✅ (38s)",
             "├─ Cultural Preview: Your perfect Rotterdam date plan is ready!"
         ],
         "benefits": [
             "Redis-powered persistence and reliability",
             "Real-time cultural intelligence streaming",
-            "Qloo API integration for superior venue matching",
             "Production-ready scalable architecture",
             "Automatic expiration and cleanup"
         ],
-        "expected_duration": "~2 minutes with engaging real-time updates + Qloo integration visibility",
-        "version": "2.2.0"
+        "expected_duration": "~2 minutes with engaging real-time updates",
+        "version": "2.1.0"
     }
-
-# ===== QLOO INTEGRATION HELPER FUNCTIONS =====
-
-def extract_qloo_insights_for_judges(enhanced_profile_a, enhanced_profile_b, date_plan, venue_enhanced_plan, final_plan):
-    """
-    Extract and format Qloo discoveries for prominent display to judges
-    """
-    
-    # Extract cultural discoveries from Step 2
-    discoveries_a = enhanced_profile_a.get("cross_domain_discoveries", {})
-    discoveries_b = enhanced_profile_b.get("cross_domain_discoveries", {})
-    
-    # Combine all Qloo entities discovered
-    all_qloo_entities = []
-    entity_categories = {}
-    
-    for profile_name, discoveries in [("Profile A", discoveries_a), ("Profile B", discoveries_b)]:
-        for category, items in discoveries.items():
-            if isinstance(items, list) and category != "discovery_confidence":
-                if category not in entity_categories:
-                    entity_categories[category] = []
-                
-                for item in items[:3]:  # Show top 3 per category
-                    if isinstance(item, dict):
-                        entity_info = {
-                            "profile": profile_name,
-                            "category": category,
-                            "name": item.get("name", "Unknown"),
-                            "qloo_id": item.get("id", "unknown"),
-                            "description": item.get("description", ""),
-                            "cultural_context": item.get("cultural_context", "")
-                        }
-                        all_qloo_entities.append(entity_info)
-                        entity_categories[category].append(entity_info)
-    
-    # Extract venue recommendations from Step 5
-    qloo_venues = []
-    if venue_enhanced_plan:
-        activities = venue_enhanced_plan.get("intelligent_date_plan", {}).get("activities", [])
-        
-        for activity in activities:
-            venue_recs = activity.get("venue_recommendations", [])
-            qloo_params = activity.get("qloo_parameters", {})
-            
-            activity_venues = {
-                "activity_name": activity.get("name", "Unknown Activity"),
-                "qloo_query_used": {
-                    "entities": qloo_params.get("signal.interests.entities", ""),
-                    "location": qloo_params.get("filter.location.query", ""),
-                    "tags": qloo_params.get("filter.tags", ""),
-                    "price_level": f"{qloo_params.get('filter.price_level.min', 1)}-{qloo_params.get('filter.price_level.max', 4)}"
-                },
-                "venues_found": []
-            }
-            
-            for venue in venue_recs[:3]:  # Show top 3 venues per activity
-                venue_info = {
-                    "name": venue.get("name", "Unknown Venue"),
-                    "qloo_id": venue.get("id", "unknown"),
-                    "qloo_score": venue.get("score", 0),
-                    "location": venue.get("location", {}).get("address", "Unknown"),
-                    "why_selected": venue.get("openai_selection_reasoning", "Selected by Qloo API"),
-                    "tags": venue.get("tags", [])
-                }
-                activity_venues["venues_found"].append(venue_info)
-            
-            qloo_venues.append(activity_venues)
-    
-    # Count API calls made (estimate based on discoveries)
-    estimated_api_calls = len(entity_categories) * 2 + len(qloo_venues) * 1  # Step 2 + Step 5
-    
-    return {
-        "qloo_integration_summary": {
-            "step_2_cultural_discovery": f"Qloo API analyzed {len(all_qloo_entities)} cultural entities across {len(entity_categories)} categories",
-            "step_5_venue_discovery": f"Qloo API found {sum(len(v['venues_found']) for v in qloo_venues)} venues across {len(qloo_venues)} activity types",
-            "total_qloo_powered_insights": len(all_qloo_entities) + sum(len(v['venues_found']) for v in qloo_venues)
-        },
-        
-        "cultural_entities_discovered": {
-            "by_category": entity_categories,
-            "sample_entities": all_qloo_entities[:8],  # Show 8 most relevant for judges
-            "total_entities_discovered": len(all_qloo_entities)
-        },
-        
-        "venue_recommendations": {
-            "by_activity": qloo_venues,
-            "total_venues_analyzed": sum(len(v['venues_found']) for v in qloo_venues),
-            "qloo_venue_matching": "All venues selected using Qloo Insights API with cultural preference signals"
-        },
-        
-        "qloo_api_usage": {
-            "total_qloo_api_calls": estimated_api_calls,
-            "api_endpoints_used": [
-                "Qloo Insights API - Cultural Entity Discovery",
-                "Qloo Insights API - Venue Recommendations"
-            ],
-            "data_sources": "Qloo's cultural taste intelligence database",
-            "integration_method": "Real-time API calls with cultural preference signals"
-        },
-        
-        "judge_demonstration": {
-            "qloo_value_proposition": "Qloo transforms user preferences into cross-domain cultural discoveries and venue matches",
-            "technical_integration": "OpenAI reasoning + Qloo cultural data = Superior venue psychology matching",
-            "competitive_advantage": "No competitor has Qloo's 500M+ cultural preference database integration",
-            "demo_proof_points": [
-                f"Found {len(all_qloo_entities)} cultural entities using Qloo API",
-                f"Matched {sum(len(v['venues_found']) for v in qloo_venues)} venues using Qloo intelligence",
-                f"Made {estimated_api_calls} real-time Qloo API calls for cultural matching",
-                "All venue selections powered by Qloo's cultural taste algorithms"
-            ]
-        }
-    }
-
-def update_redis_progress_with_qloo_visibility(request_id: str, step: int, qloo_data: dict = None):
-    """Enhanced progress updates showing Qloo integration to judges"""
-    
-    # Get existing progress update function
-    progress = redis_get_json(PROGRESS_KEY.format(request_id=request_id))
-    if not progress:
-        return
-    
-    # Add Qloo-specific progress messages
-    if step == 2 and qloo_data:
-        entities_found = qloo_data.get("entities_discovered", 0)
-        progress["qloo_step_2_details"] = {
-            "qloo_entities_discovered": entities_found,
-            "qloo_categories_analyzed": qloo_data.get("categories", []),
-            "qloo_api_status": "Successfully retrieved cultural preferences",
-            "qloo_integration_proof": f"Made {len(qloo_data.get('categories', []))} Qloo API calls"
-        }
-        
-        # Update cultural preview to highlight Qloo
-        qloo_preview = f"🎯 Qloo API discovered {entities_found} cultural entities across {len(qloo_data.get('categories', []))} domains"
-        progress["cultural_previews"].append(qloo_preview)
-    
-    elif step == 5 and qloo_data:
-        venues_found = qloo_data.get("venues_discovered", 0)
-        progress["qloo_step_5_details"] = {
-            "qloo_venues_discovered": venues_found,
-            "qloo_venue_queries": qloo_data.get("queries_made", []),
-            "qloo_api_status": "Successfully matched venues using cultural intelligence",
-            "qloo_integration_proof": f"Made {len(qloo_data.get('queries_made', []))} Qloo venue API calls"
-        }
-        
-        # Update cultural preview to highlight Qloo
-        qloo_preview = f"🏢 Qloo API matched {venues_found} venues using cultural preference algorithms"
-        progress["cultural_previews"].append(qloo_preview)
-    
-    # Save enhanced progress
-    redis_set_json(PROGRESS_KEY.format(request_id=request_id), progress, 7200)
 
 # ===== REDIS-POWERED BACKGROUND PROCESSING =====
 
 def process_dual_profile_pipeline(request_id: str):
     """
     Redis-powered background processing for TWO PROFILES with persistent state management
-    ENHANCED: Extract and surface Qloo discoveries for judge visibility
     """
     
     # CRITICAL: Global duplicate prevention
@@ -795,7 +611,7 @@ def process_dual_profile_pipeline(request_id: str):
         logger.info(f"🔒 Processing lock acquired for {request_id}")
     
     try:
-        logger.info(f"🔄 Starting Redis-powered DUAL PROFILE background processing with Qloo for {request_id}")
+        logger.info(f"🔄 Starting Redis-powered DUAL PROFILE background processing for {request_id}")
         
         # Get request data from Redis
         request_data_raw = redis_get_json(REQUEST_KEY.format(request_id=request_id))
@@ -891,9 +707,9 @@ def process_dual_profile_pipeline(request_id: str):
         if check_redis_cancellation(request_id):
             return
         
-        # ===== STEP 2: DUAL CULTURAL ENHANCEMENT WITH QLOO =====
+        # ===== STEP 2: DUAL CULTURAL ENHANCEMENT =====
         update_redis_progress(request_id, current_step=2, step_status="2", status_value="processing",
-                       preview="Discovering cultural preferences using Qloo API for both profiles...")
+                       preview="Discovering cultural preferences for both profiles...")
         
         step2_start = time.time()
         
@@ -915,20 +731,8 @@ def process_dual_profile_pipeline(request_id: str):
             handle_redis_processing_error(request_id, error_msg, 2)
             return
         
-        # Store enhanced profiles
         context_container.store_step_output("2a", enhanced_profile_a)
         context_container.store_step_output("2b", enhanced_profile_b)
-        
-        # NEW: Extract Qloo discoveries for judge visibility
-        qloo_step2_data = {
-            "entities_discovered": len(enhanced_profile_a.get("cross_domain_discoveries", {})) + len(enhanced_profile_b.get("cross_domain_discoveries", {})),
-            "categories": list(set(
-                list(enhanced_profile_a.get("cross_domain_discoveries", {}).keys()) + 
-                list(enhanced_profile_b.get("cross_domain_discoveries", {}).keys())
-            )),
-            "profile_a_discoveries": len(enhanced_profile_a.get("cross_domain_discoveries", {})),
-            "profile_b_discoveries": len(enhanced_profile_b.get("cross_domain_discoveries", {}))
-        }
         
         # Extract discoveries for preview
         metadata_a = enhanced_profile_a.get("processing_metadata", {})
@@ -938,15 +742,11 @@ def process_dual_profile_pipeline(request_id: str):
         total_discoveries = discoveries_a + discoveries_b
         user_location = metadata_a.get("user_location", "unknown")
         
-        # ENHANCED: Show Qloo integration clearly
-        step2_preview = f"Found {total_discoveries} cultural discoveries using Qloo API in {user_location}"
+        step2_preview = f"Found {total_discoveries} total cultural discoveries in {user_location}"
         
         update_redis_progress(request_id, step_status="2", status_value="complete",
                        duration=step2_time, preview=step2_preview,
-                       cultural_preview=f"🎯 Qloo API discovered {total_discoveries} cross-domain cultural preferences for both profiles in {user_location}")
-        
-        # NEW: Add Qloo-specific progress details
-        update_redis_progress_with_qloo_visibility(request_id, 2, qloo_step2_data)
+                       cultural_preview=f"🌍 Discovered {total_discoveries} cross-domain preferences for both profiles in {user_location}")
         
         # Check for cancellation
         if check_redis_cancellation(request_id):
@@ -995,9 +795,9 @@ def process_dual_profile_pipeline(request_id: str):
         if check_redis_cancellation(request_id):
             return
         
-        # ===== STEP 5: VENUE DISCOVERY WITH QLOO =====
+        # ===== STEP 5: VENUE DISCOVERY =====
         update_redis_progress(request_id, current_step=5, step_status="5", status_value="processing",
-                       preview="Finding perfect venues using Qloo API intelligence...")
+                       preview="Finding perfect venues with AI intelligence...")
         
         step5_start = time.time()
         
@@ -1013,40 +813,16 @@ def process_dual_profile_pipeline(request_id: str):
         
         context_container.store_step_output(5, venue_enhanced_plan)
         
-        # NEW: Extract Qloo venue data for judge visibility
-        qloo_step5_data = {
-            "venues_discovered": len([
-                venue for activity in venue_enhanced_plan.get("intelligent_date_plan", {}).get("activities", [])
-                for venue in activity.get("venue_recommendations", [])
-            ]),
-            "queries_made": [
-                activity.get("qloo_parameters", {}) 
-                for activity in venue_enhanced_plan.get("intelligent_date_plan", {}).get("activities", [])
-                if activity.get("qloo_parameters")
-            ],
-            "venue_recommendations": [
-                {
-                    "activity": activity.get("name"),
-                    "venues": len(activity.get("venue_recommendations", []))
-                }
-                for activity in venue_enhanced_plan.get("intelligent_date_plan", {}).get("activities", [])
-            ]
-        }
-        
         # Extract venue info for preview
         venue_summary = venue_enhanced_plan.get("venue_discovery_summary", {})
         venues_selected = venue_summary.get("total_venues_selected", 0)
         success_rate = venue_summary.get("discovery_success_rate", 0)
         
-        # ENHANCED: Show Qloo venue matching clearly
-        step5_preview = f"Found {venues_selected} venues using Qloo API (success: {success_rate:.0%})"
+        step5_preview = f"Found {venues_selected} perfect venues (success: {success_rate:.0%})"
         
         update_redis_progress(request_id, step_status="5", status_value="complete",
                        duration=step5_time, preview=step5_preview,
-                       cultural_preview=f"🏢 Qloo API matched {venues_selected} perfect venues using cultural intelligence in {user_location}")
-        
-        # NEW: Add Qloo-specific venue progress details
-        update_redis_progress_with_qloo_visibility(request_id, 5, qloo_step5_data)
+                       cultural_preview=f"🏢 Selected {venues_selected} perfect venues for your date in {user_location}")
         
         # Check for cancellation
         if check_redis_cancellation(request_id):
@@ -1082,24 +858,14 @@ def process_dual_profile_pipeline(request_id: str):
                        duration=step6_time, preview=step6_preview,
                        cultural_preview=f"🎯 Your perfect {location} date plan is ready! {activities_count} activities over {total_duration}")
         
-        # ===== PIPELINE COMPLETION WITH QLOO VISIBILITY =====
+        # ===== PIPELINE COMPLETION =====
         total_time = time.time() - pipeline_start
         
-        # ENHANCED: Extract Qloo insights for judge visibility
-        qloo_insights = extract_qloo_insights_for_judges(
-            enhanced_profile_a, enhanced_profile_b, 
-            date_plan, venue_enhanced_plan, final_plan
-        )
-        
-        # Build final response with PROMINENT Qloo integration
+        # Build final response
         final_response = {
             "success": True,
-            "message": "Complete 6-step dual profile cultural intelligence pipeline executed successfully - POWERED BY QLOO API",
+            "message": "Complete 6-step dual profile cultural intelligence pipeline executed successfully",
             "final_date_plan": final_plan,
-            
-            # NEW: Prominent Qloo integration section for judges
-            "qloo_cultural_intelligence": qloo_insights,
-            
             "pipeline_performance": {
                 "total_time_seconds": round(total_time, 1),
                 "step_1_time": round(step1_time, 1),
@@ -1108,10 +874,7 @@ def process_dual_profile_pipeline(request_id: str):
                 "step_5_time": round(step5_time, 1),
                 "step_6_time": round(step6_time, 1),
                 "steps_completed": 6,
-                "pipeline_complete": True,
-                # NEW: Qloo performance metrics
-                "qloo_integration_time": round(step2_time + step5_time, 1),
-                "qloo_api_efficiency": f"{qloo_insights['total_entities_discovered'] + qloo_insights['total_venues_analyzed']} results in {round(step2_time + step5_time, 1)}s"
+                "pipeline_complete": True
             },
             "cultural_intelligence_summary": {
                 "total_discoveries_analyzed": total_discoveries,
@@ -1120,17 +883,7 @@ def process_dual_profile_pipeline(request_id: str):
                 "final_activities": activities_count,
                 "location": location,
                 "dual_profile_mode": True,
-                "demo_ready": True,
-                # NEW: Qloo-specific metrics for judges
-                "qloo_entities_discovered": qloo_insights["total_entities_discovered"],
-                "qloo_venues_analyzed": qloo_insights["total_venues_analyzed"],
-                "qloo_api_calls_made": qloo_insights["total_qloo_api_calls"],
-                "qloo_powered_features": [
-                    "Cultural preference discovery",
-                    "Cross-domain taste analysis", 
-                    "Venue personality matching",
-                    "Activity recommendation intelligence"
-                ]
+                "demo_ready": True
             },
             "redis_backend": True,
             "timestamp": datetime.now().isoformat()
@@ -1140,7 +893,7 @@ def process_dual_profile_pipeline(request_id: str):
         if not redis_set_json(RESULT_KEY.format(request_id=request_id), final_response, 86400):
             logger.warning(f"Failed to store final results for {request_id}")
         else:
-            logger.info(f"📦 Final results with Qloo insights stored successfully for {request_id}")
+            logger.info(f"📦 Final results stored successfully for {request_id}")
         
         # CRITICAL: ALSO store results directly in progress data to prevent corruption
         current_progress = redis_get_json(PROGRESS_KEY.format(request_id=request_id))
@@ -1149,7 +902,7 @@ def process_dual_profile_pipeline(request_id: str):
             current_progress["results_embedded"] = True
             current_progress["embedded_timestamp"] = datetime.now().isoformat()
             redis_set_json(PROGRESS_KEY.format(request_id=request_id), current_progress, 7200)
-            logger.info(f"📦 EMBEDDED final results with Qloo insights in progress data for {request_id}")
+            logger.info(f"📦 EMBEDDED final results in progress data for {request_id}")
         
         # Mark as complete with final status
         update_redis_progress(request_id, status="complete", overall_progress=100, current_step=6)
@@ -1159,7 +912,7 @@ def process_dual_profile_pipeline(request_id: str):
             redis_client.setex(f"completed:{request_id}", 7200, "true")  # 2 hour marker
             logger.info(f"🏁 COMPLETION MARKER SET for {request_id}")
         
-        logger.info(f"✅ Redis-powered DUAL PROFILE pipeline with Qloo completed for {request_id} in {total_time:.1f}s - RESULTS STORED")
+        logger.info(f"✅ Redis-powered DUAL PROFILE pipeline completed for {request_id} in {total_time:.1f}s - RESULTS STORED")
         
     except Exception as e:
         logger.error(f"Redis-powered dual profile pipeline processing failed for {request_id}: {str(e)}")
@@ -1268,7 +1021,7 @@ def handle_redis_processing_error(request_id: str, error_message: str, failed_st
 @app.on_event("startup")
 async def startup_event():
     """Application startup - test Redis connection"""
-    logger.info("🚀 Starting ai-mor.me API v2.2 with Redis backend and Qloo integration")
+    logger.info("🚀 Starting ai-mor.me API v2.1 with Redis backend")
     
     redis_status = get_redis_status()
     if redis_status["connected"]:
@@ -1280,14 +1033,14 @@ async def startup_event():
     # Test API keys
     validation = settings.validate_required_keys()
     if validation["valid"]:
-        logger.info("✅ API keys validated (including Qloo)")
+        logger.info("✅ API keys validated")
     else:
         logger.warning(f"⚠️  Missing API keys: {validation['missing_keys']}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown - cleanup Redis connections"""
-    logger.info("🔽 Shutting down ai-mor.me API v2.2")
+    logger.info("🔽 Shutting down ai-mor.me API v2.1")
     
     try:
         if redis_client:
