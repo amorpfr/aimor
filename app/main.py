@@ -75,7 +75,14 @@ def get_redis_client():
         redis_url = os.getenv('REDIS_URL')
         if redis_url:
             logger.info("Connecting to Heroku Redis...")
-            return redis.from_url(redis_url, decode_responses=True)
+            import ssl
+            return redis.from_url(
+                redis_url, 
+                decode_responses=True,
+                ssl_cert_reqs=ssl.CERT_NONE,
+                ssl_check_hostname=False,
+                ssl_ca_certs=None
+            )
         
         # Try local Redis (development)
         redis_host = os.getenv('REDIS_HOST', 'localhost')
