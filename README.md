@@ -28,14 +28,14 @@ Production: https://your-app.herokuapp.com
 
 ### **Interactive Documentation**
 ```
-API Docs: https://your-app.herokuapp.com/docs
-Health Check: https://your-app.herokuapp.com/health
+API Docs: https://aimor-api-8fd07f4d5603.herokuapp.com/docs
+Health Check: https://aimor-api-8fd07f4d5603.herokuapp.com/health
 ```
 
 ### **Basic Usage**
 ```bash
 # 1. Start cultural intelligence processing
-curl -X POST "https://your-app.herokuapp.com/start-cultural-date-plan" \
+curl -X POST "https://aimor-api-8fd07f4d5603.herokuapp.com/start-cultural-date-plan" \
   -H "Content-Type: application/json" \
   -d '{
     "profile_a": {"text": "Sustainable fashion designer who loves photography"},
@@ -50,10 +50,10 @@ curl -X POST "https://your-app.herokuapp.com/start-cultural-date-plan" \
 # Returns: {"request_id": "uuid", "progress_endpoint": "/date-plan-progress/uuid"}
 
 # 2. Track real-time progress (poll every 2 seconds)
-curl "https://your-app.herokuapp.com/date-plan-progress/{request_id}"
+curl "https://aimor-api-8fd07f4d5603.herokuapp.com/date-plan-progress/{request_id}"
 
 # 3. Get complete results when status="complete"
-curl "https://your-app.herokuapp.com/date-plan-result/{request_id}"
+curl "https://aimor-api-8fd07f4d5603.herokuapp.com/date-plan-result/{request_id}"
 ```
 
 ---
@@ -200,7 +200,7 @@ GET /date-plan-result/{request_id}
 ### **JavaScript/TypeScript**
 ```javascript
 // Start processing
-const response = await fetch('https://your-app.herokuapp.com/start-cultural-date-plan', {
+const response = await fetch('https://aimor-api-8fd07f4d5603.herokuapp.com/start-cultural-date-plan', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -214,7 +214,7 @@ const { request_id } = await response.json();
 
 // Poll for progress
 const pollProgress = async () => {
-  const progress = await fetch(`https://your-app.herokuapp.com/date-plan-progress/${request_id}`);
+  const progress = await fetch(`https://aimor-api-8fd07f4d5603.herokuapp.com/date-plan-progress/${request_id}`);
   const data = await progress.json();
   
   if (data.status === 'complete' && data.final_results_available) {
@@ -234,7 +234,7 @@ import requests
 import time
 
 # Start processing
-response = requests.post('https://your-app.herokuapp.com/start-cultural-date-plan', json={
+response = requests.post('https://aimor-api-8fd07f4d5603.herokuapp.com/start-cultural-date-plan', json={
     "profile_a": {"text": "Fashion designer who loves photography"},
     "profile_b": {"text": "Urban photographer passionate about nature"},
     "context": {"location": "rotterdam", "time_of_day": "evening", "duration": "4 hours"}
@@ -244,7 +244,7 @@ request_id = response.json()['request_id']
 
 # Poll for completion
 while True:
-    progress = requests.get(f'https://your-app.herokuapp.com/date-plan-progress/{request_id}')
+    progress = requests.get(f'https://aimor-api-8fd07f4d5603.herokuapp.com/date-plan-progress/{request_id}')
     data = progress.json()
     
     print(f"Step {data['current_step']}/6: {data['overall_progress']}%")
