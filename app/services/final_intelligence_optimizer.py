@@ -502,7 +502,7 @@ Return ONLY this JSON structure:
                 ],
                 "practical_notes": {{
                     "best_time": "Timing advice for this {context['location']} venue",
-                    "cost": "Realistic cost estimate in euros",
+                    "cost": "Realistic cost estimate in currency of {context['location']} ",
                     "weather_backup": "Alternative if weather is poor",
                     "what_to_bring": "Practical items needed"
                 }},
@@ -514,7 +514,7 @@ Return ONLY this JSON structure:
             "total_walking_distance": "Realistic distance calculation",
             "transport_needed": "Public transport options in {context['location']}",
             "weather_adaptations": "Season-appropriate alternatives",
-            "cost_estimate": "Total realistic cost in euros",
+            "cost_estimate": "Total realistic cost in currency of {context['location']} ",
             "energy_level": "Physical energy required"
         }}
     }},
