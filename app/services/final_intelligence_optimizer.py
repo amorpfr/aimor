@@ -118,10 +118,11 @@ class FinalIntelligenceOptimizer:
         except Exception as e:
             logger.error(f"Step 6 final intelligence optimization failed: {str(e)}")
             return self._fallback_final_plan(step5_output, str(e))
+        
     
     def _interpret_duration_context(self, context_data: Dict) -> Dict:
         """
-        ENHANCED: Interpret duration context for realistic planning
+        FIXED: Interpret duration context for realistic planning
         
         Properly handles "full day", "half day", "4 hours", etc.
         """
@@ -131,16 +132,19 @@ class FinalIntelligenceOptimizer:
         
         logger.info(f"Interpreting duration: '{duration}' with time_of_day: '{time_of_day}'")
         
-        # Handle "full day" scenarios
-        if 'full day' in duration or 'whole day' in duration or 'all day' in duration:
+        # ✅ FIX: Handle "full day" scenarios FIRST (before checking time_of_day)
+        # Handle both "full day" and "full-day" variations
+        if ('full day' in duration or 'full-day' in duration or 
+            'whole day' in duration or 'whole-day' in duration or 
+            'all day' in duration or 'all-day' in duration):
             if 'morning' in time_of_day:
                 return {
-                    "total_hours": 10,
+                    "total_hours": 10,  # ✅ CORRECT: Full day from morning
                     "start_time": "10:00", 
-                    "end_time": "20:00",
-                    "activities_needed": 5,
+                    "end_time": "20:00",   # ✅ CORRECT: 10 hours total
+                    "activities_needed": 5, # ✅ CORRECT: 5 activities for full day
                     "meals_needed": ["brunch", "lunch", "dinner"],
-                    "interpretation": "full_day_morning_start"
+                    "interpretation": "full_day_morning_start"  # ✅ CORRECT
                 }
             elif 'afternoon' in time_of_day:
                 return {
@@ -152,7 +156,6 @@ class FinalIntelligenceOptimizer:
                     "interpretation": "full_day_afternoon_start"
                 }
             elif 'evening' in time_of_day:
-                # Evening full day is unusual, but handle it
                 return {
                     "total_hours": 6,
                     "start_time": "15:00",
@@ -172,8 +175,8 @@ class FinalIntelligenceOptimizer:
                     "interpretation": "full_day_default"
                 }
         
-        # Handle "half day" scenarios
-        elif 'half day' in duration:
+        # Handle "half day" scenarios (support both space and hyphen)
+        elif ('half day' in duration or 'half-day' in duration):
             if 'morning' in time_of_day:
                 return {
                     "total_hours": 4,
